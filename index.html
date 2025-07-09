@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Máquina de Geração de Demanda - LinkedIn</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            overflow-x: hidden;
+        }
+
+        /* Gradientes e animações */
+        @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        /* Header */
+        .header {
+            background: #ffffff;
+            padding: 1rem 0;
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0,0,102,0.1);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 2rem;
+        }
+
+        .logo {
+            height: 50px;
+            transition: transform 0.3s ease;
+        }
+
+        .logo:hover {
+            transform: scale(1.1);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-item {
+            color: #000066;
+            text-decoration: none;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+        }
+
+        .nav-item:hover {
+            background: rgba(0, 0, 102, 0.1);
+            transform: translateY(-2px);
+        }
+
+        /* Hero Section */
+        .hero {
+            background: linear-gradient(135deg, #000066 0%, #0051CC 100%);
+            color: #ffffff;
+            padding: 120px 0 80px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: pulse 4s ease-in-out infinite;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            position: relative;
+            z-index: 2;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            animation: fadeInUp 1s ease;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 1s ease 0.3s both;
+            opacity: 0.9;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: linear-gradient(45deg, #ffffff, #f0f0f0);
+            color: #000066;
+            padding: 1rem 2.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+            animation: fadeInUp 1s ease 0.6s both;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+            background: linear-gradient(45deg, #f0f0f0, #ffffff);
+        }
+
+        /* Stats Section */
+        .stats {
+            background: #ffffff;
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .stats::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 100px;
+            background: linear-gradient(180deg, #0051CC, transparent);
+            opacity: 0.1;
+        }
+
+        .stats-grid {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            padding: 0 2rem;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,102,0.1);
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(0,0,102,0.2);
+            border-color: #0051CC;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #000066;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            color: #666;
+            font-weight: 500;
+        }
+
+        /* Content Sections */
+        .content-section {
+            padding: 80px 0;
+            background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%);
+        }
+
+        .content-section:nth-child(even) {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9ff 100%);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: #000066;
+            text-align: center;
+            margin-bottom: 3rem;
+            font-weight: 700;
+            position: relative;
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 4px;
+            background: linear-gradient(90deg, #000066, #0051CC);
+            border-radius: 2px;
+        }
+
+        .pillars-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .pillar-description ul {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .pillar-description ul li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .pillar-description ul li::before {
+            content: '✓';
+            position: absolute;
+            left: 0;
+            color: #0051CC;
+            font-weight: bold;
+        }
+
+        /* Enhanced card styles */
+        .pillar-card {
+            background: #ffffff;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,102,0.1);
+            transition: all 0.3s ease;
+            border-left: 5px solid #0051CC;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .pillar-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(45deg, rgba(0,81,204,0.1), transparent);
+            transform: rotate(45deg) translate(50px, -50px);
+        }
+
+        .pillar-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 40px rgba(0,0,102,0.2);
+        }
+
+        .pillar-title {
+            font-size: 1.4rem;
+            color: #000066;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .pillar-description {
+            color: #666;
+            line-height: 1.8;
+        }
+
+        /* Case Study */
+        .case-study {
+            background: linear-gradient(135deg, #000066 0%, #0051CC 100%);
+            color: #ffffff;
+            padding: 80px 0;
+            position: relative;
+        }
+
+        .case-study::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="50" cy="50" r="2" fill="%23ffffff" opacity="0.1"/></svg>') repeat;
+            opacity: 0.3;
+        }
+
+        .case-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .case-results {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+
+        .result-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .result-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: #ffffff;
+        }
+
+        .result-label {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Routine Table */
+        .routine-table {
+            background: #ffffff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,102,0.1);
+            margin-top: 3rem;
+        }
+
+        .routine-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .routine-table th {
+            background: #000066;
+            color: #ffffff;
+            padding: 1rem;
+            font-weight: 600;
+        }
+
+        .routine-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .routine-table tr:nth-child(even) {
+            background: #f8f9ff;
+        }
+
+        .routine-table tr:hover {
+            background: #f0f2ff;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #0051CC 0%, #000066 100%);
+            color: #ffffff;
+            padding: 80px 0;
+            text-align: center;
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .cta-btn {
+            display: inline-block;
+            background: #ffffff;
+            color: #000066;
+            padding: 1rem 2rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .cta-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+        }
+
+        .cta-btn.secondary {
+            background: transparent;
+            color: #ffffff;
+            border: 2px solid #ffffff;
+        }
+
+        .cta-btn.secondary:hover {
+            background: #ffffff;
+            color: #000066;
+        }
+
+        /* Footer */
+        .footer {
+            background: #000066;
+            color: #ffffff;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+                gap: 1.5rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+            
+            .nav-menu {
+                display: none;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 1rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem;
+            }
+
+            .stat-number {
+                font-size: 2.5rem;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .pillar-card {
+                padding: 1.5rem;
+            }
+
+            .pillar-description ul li {
+                font-size: 0.9rem;
+            }
+
+            .case-results {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+
+            .pillars-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .routine-table {
+                overflow-x: auto;
+            }
+
+            .routine-table table {
+                min-width: 600px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="nav-container">
+            <img src="https://d2bxzineatl84k.cloudfront.net/storage/files/logos/3FG9UOwcJsqN0NmFkFdo9alRlzBj7mE3ELQCwIho.png" alt="OndaSkim Logo" class="logo">
+            <nav class="nav-menu">
+                <a href="#home" class="nav-item">Início</a>
+                <a href="#estrategia" class="nav-item">Estratégia</a>
+                <a href="#rede" class="nav-item">Rede</a>
+                <a href="#pilares" class="nav-item">Pilares</a>
+                <a href="#casos" class="nav-item">Cases</a>
+                <a href="#metricas" class="nav-item">Métricas</a>
+                <a href="#contato" class="nav-item">Contato</a>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Máquina de Geração de Demanda</h1>
+            <p>Transforme seu LinkedIn em um canal de vendas previsível com sua marca pessoal (MESMO SEM TEMPO)</p>
+            <a href="https://bit.ly/4n6mVbM" class="cta-button">Acesse o Guia Completo</a>
+        </div>
+    </section>
+
+    <!-- Stats Section -->
+    <section class="stats">
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">63%</div>
+                <div class="stat-label">dos CEOs confiam mais em pessoas do que em marcas ao considerar novas parcerias</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">5×</div>
+                <div class="stat-label">mais engajamento em perfis pessoais vs. páginas corporativas no LinkedIn, gerando até 3× mais oportunidades de reunião.</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">80%</div>
+                <div class="stat-label">dos decisores revisam o perfil de quem envia a proposta antes de uma reunião</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">94%</div>
+                <div class="stat-label">dos profissionais usam LinkedIn para distribuição de conteúdo B2B e responde por 50% do tráfego social para sites e blogs corporativos, superando Twitter/X (25%) e Facebook (15%).</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">80%</div>
+                <div class="stat-label">dos leads B2B gerados via redes sociais vêm do LinkedIn, tornando-o a plataforma mais eficaz para geração de leads. </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Strategy Section -->
+    <section id="estrategia" class="content-section">
+        <div class="container">
+            <h2 class="section-title">Por que sua marca pessoal é um canal de vendas?</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #666; max-width: 800px; margin: 0 auto;">
+                Executivos de alto nível sabem que confiança é o principal motor de decisões B2B. 
+                Sua marca pessoal reduz barreiras de preço e encurta o ciclo de decisão.
+            </p>
+            
+            <div style="background: #ffffff; padding: 2rem; border-radius: 15px; margin-top: 3rem; box-shadow: 0 10px 30px rgba(0,0,102,0.1); border-left: 5px solid #0051CC;">
+                <h3 style="color: #000066; margin-bottom: 1rem;">💡Cenário</h3>
+                <p style="color: #666; font-style: italic;">
+                    "João Silva, CFO de uma empresa de tecnologia, recebeu um convite frio de um fornecedor. 
+                    Antes de responder, visitou o perfil do executivo: foto profissional, artigos sobre redução de custos 
+                    e recomendações de clientes. A clareza e autoridade transmitidas pelo conteúdo aumentaram em 40% 
+                    as chances de agendar uma call."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Case Study -->
+    <section id="casos" class="case-study">
+        <div class="container">
+            <div class="case-content">
+                <h2 class="section-title" style="color: #ffffff;">Case Real
+                Triplicando Leads em 47 Dias</h2>
+                
+                <!-- Situação Inicial -->
+                <h3 style="color: #ffffff; margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Situação Inicial do Cliente</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 3rem;">
+                    <div class="result-item">
+                       <div class="result-number" style="color: #ff6b6b;">R$ 45.000</div>
+                        <div class="result-label">Investimento mensal em anúncios com ROI negativo</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number" style="color: #ff6b6b;">3 Agências</div>
+                        <div class="result-label">Rotação de 3 agências em 12 meses</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number" style="color: #ff6b6b;">ZERO</div>
+                        <div class="result-label">Contratos acima de R$ 100.000 no último trimestre</div>
+                    </div>
+                </div>
+
+                <!-- Ações Implementadas -->
+                <h3 style="color: #ffffff; margin-bottom: 2rem; font-size: 1.5rem; text-align: center;">Ações Implementadas na OndaSkim</h3>
+                
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                    <div class="result-item" style="text-align: left; padding: 2rem;">
+                        <h4 style="color: #ffffff; margin-bottom: 1rem; font-size: 1.2rem;">1️⃣ Abandono dos Canais de Massa</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: #ff9999;">❌ Antes:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">15 posts genéricos por semana na página da empresa</span>
+                        </div>
+                        <div>
+                            <strong style="color: #99ff99;">✅ Depois:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">3 diretores publicando para públicos segmentados no LinkedIn</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item" style="text-align: left; padding: 2rem;">
+                        <h4 style="color: #ffffff; margin-bottom: 1rem; font-size: 1.2rem;">2️⃣ Comunicação que Desafia o Mercado</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: #ff9999;">❌ Antes:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">"Somos os melhores, temos X anos de experiência"</span>
+                        </div>
+                        <div>
+                            <strong style="color: #99ff99;">✅ Depois:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">"Por que as práticas tradicionais de [setor] estão falhando e o que funciona hoje"</span>
+                        </div>
+                    </div>
+
+                    <div class="result-item" style="text-align: left; padding: 2rem;">
+                        <h4 style="color: #ffffff; margin-bottom: 1rem; font-size: 1.2rem;">3️⃣ Marketing como Hub de Relacionamento</h4>
+                        <div style="margin-bottom: 1rem;">
+                            <strong style="color: #ff9999;">❌ Antes:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">Foco em métricas de vaidade e volume de conteúdo</span>
+                        </div>
+                        <div>
+                            <strong style="color: #99ff99;">✅ Depois:</strong><br>
+                            <span style="color: #ffffff; opacity: 0.8; font-size: 0.9rem;">Interação profunda com 250 decisores estratégicos via comentários, mensagens e webinars exclusivos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resultados -->
+                <h3 style="color: #ffffff; margin-bottom: 1.5rem; font-size: 1.5rem; text-align: center;">Resultados em 47 Dias</h3>
+                <div class="case-results">
+                    <div class="result-item">
+                        <div class="result-number">28</div>
+                        <div class="result-label">Reuniões com decisores<br><small>(vs. 3 no trimestre anterior)</small></div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number">5</div>
+                        <div class="result-label">Propostas entre<br>R$ 150.000–250.000</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number">3</div>
+                        <div class="result-label">Contratos fechados<br>sem negociação de preço</div>
+                    </div>
+                    <div class="result-item">
+                        <div class="result-number">250</div>
+                        <div class="result-label">Decisores estratégicos<br>no relacionamento</div>
+                    </div>
+                </div>
+                
+                <div style="text-align: center; margin-top: 3rem;">
+                    <div class="result-item" style="padding: 2rem;">
+                        <h4 style="color: #ffffff; margin-bottom: 1rem; font-size: 1.3rem;">💡 Aprendizado-Chave</h4>
+                        <p style="font-size: 1.1rem; opacity: 0.9; color: #ffffff;">
+                            <strong>Menos é mais:</strong> Relacionamentos profundos superam qualquer campanha de alcance amplo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- 4 Pillars Section -->
+    <section id="pilares" class="content-section">
+        <div class="container">
+            <h2 class="section-title">Os 4 Pilares da Máquina de Demanda</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #666; margin-bottom: 3rem;">
+                Para quem só tem 15 minutos por dia
+            </p>
+            
+            <div class="pillars-grid">
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🎯 Pilar 1: Planejamento Estratégico (30 min/semana)</h3>
+                    <div class="pillar-description">
+                        <p><strong>Como fazer:</strong> Em uma planilha (Excel ou Google Sheets), liste 3 temas de alto impacto:</p>
+                        <ul style="margin: 1rem 0; color: #666;">
+                            <li>Redução de custos</li>
+                            <li>Inovação operacional</li>
+                            <li>Cases de clientes</li>
+                        </ul>
+                        <div style="background: #f8f9ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <strong>Exemplo prático:</strong> Na segunda-feira às 9h, defina o tema e crie títulos de 2 posts.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">⚡ Pilar 2: Produção em Lote (2h/mês)</h3>
+                    <div class="pillar-description">
+                        <p><strong>Ferramentas simples:</strong></p>
+                        <ul style="margin: 1rem 0; color: #666;">
+                            <li>Microsoft PowerPoint ou Google Slides para carrosséis</li>
+                            <li>Word para PDFs curtos</li>
+                        </ul>
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 3px solid #0051CC;">
+                            <strong>Método:</strong> Escolha um dia do mês; escreva 4 textos (200–300 palavras) e salve como rascunho no LinkedIn.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">💬 Pilar 3: Engajamento Diário (5 min/dia)</h3>
+                    <div class="pillar-description">
+                        <p><strong>Salvando respostas rápidas:</strong> Use as "Saved replies" do LinkedIn ou um bloco de notas com templates de comentários.</p>
+                        <div style="background: #fff8f0; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 3px solid #ff9500;">
+                            <strong>Exemplo de comentário:</strong><br>
+                            <em>"Excelente ponto, [Nome]! Em nossa experiência, [insight adicional]…"</em>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🎯 Pilar 4: Nutrição e Conversão (10 min/semana)</h3>
+                    <div class="pillar-description">
+                        <p><strong>Mensagens personalizadas:</strong> Selecione quem reagiu aos seus posts e envie convite para reunião:</p>
+                        <div style="background: #f0fff0; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 3px solid #28a745;">
+                            <strong>Exemplo:</strong><br>
+                            <em>"Olá [Nome], obrigado pelo like no meu artigo sobre redução de custos. Gostaria de compartilhar um case de sucesso similar ao seu setor. Posso agendar 15 min?"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Network Building Section -->
+    <section id="rede" class="content-section">
+        <div class="container">
+            <h2 class="section-title">Construindo uma Rede de Valor</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #666; max-width: 800px; margin: 0 auto 3rem;">
+                Uma rede de valor é formada por influenciadores e stakeholders que ampliam seu alcance e geram oportunidades reais.
+            </p>
+            
+            <div class="pillars-grid">
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🔍 Identificação de Influenciadores</h3>
+                    <div class="pillar-description">
+                        <p><strong>Como fazer:</strong></p>
+                        <ul style="margin: 1rem 0; color: #666;">
+                            <li>Utilize a busca avançada do LinkedIn: filtre por setor, cargo e localização</li>
+                            <li>Avalie a qualidade do conteúdo e nível de engajamento da audiência</li>
+                        </ul>
+                        <div style="background: #f8f9ff; padding: 1rem; border-radius: 8px; margin-top: 1rem;">
+                            <strong>Exemplo:</strong> Carolina Santos, CEO de uma fintech, localiza 5 influenciadores de finanças sustentáveis e analisa seus posts dos últimos 3 meses para entender quais temas geram mais debate.
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🤝 Conexão com Stakeholders</h3>
+                    <div class="pillar-description">
+                        <p><strong>Estratégia de conexão:</strong></p>
+                        <ul style="margin: 1rem 0; color: #666;">
+                            <li>Personalize cada convite mencionando um ponto em comum</li>
+                            <li>Demonstre valor logo na mensagem</li>
+                            <li>Foque na qualidade das conexões, não na quantidade</li>
+                        </ul>
+                        <div style="background: #f0f8ff; padding: 1rem; border-radius: 8px; margin-top: 1rem; border-left: 3px solid #0051CC;">
+                            <strong>Exemplo:</strong><br>
+                            <em>"Olá [Nome], vi seu artigo sobre ESG e acredito que podemos trocar insights sobre [tema específico]. Podemos nos conectar?"</em>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Routine Table -->
+    <section class="content-section">
+        <div class="container">
+            <h2 class="section-title">Rotina de 5 Minutos Diários</h2>
+            
+            <div class="routine-table">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Ação</th>
+                            <th>Descrição</th>
+                            <th>Ferramenta</th>
+                            <th>Tempo</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Selecionar Temas</strong></td>
+                            <td>Revise o calendário e ajuste temas semanais</td>
+                            <td>Excel/Sheets</td>
+                            <td>2 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Interagir em Perfis</strong></td>
+                            <td>Curtir + comentar em 5 perfis-chave</td>
+                            <td>LinkedIn</td>
+                            <td>2 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Follow-up</strong></td>
+                            <td>Enviar 2 mensagens convidando leads para call</td>
+                            <td>LinkedIn Messages</td>
+                            <td>1 min</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Métricas</strong></td>
+                            <td>Revisar curtidas, comentários e convites</td>
+                            <td>LinkedIn Analytics</td>
+                            <td>5 min (mensal)</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <p style="text-align: center; margin-top: 2rem; font-size: 1.1rem; color: #666;">
+                <strong>Repetir ciclo 5×/semana para consistência</strong>
+            </p>
+        </div>
+    </section>
+
+    <!-- Metrics Section -->
+    <section id="metricas" class="content-section">
+        <div class="container">
+            <h2 class="section-title">Resultados que Importam</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #666; max-width: 800px; margin: 0 auto 3rem;">
+                Métricas essenciais para acompanhar o sucesso da sua estratégia
+            </p>
+            
+            <div class="pillars-grid">
+                <div class="pillar-card">
+                    <h3 class="pillar-title">📊 Engajamento</h3>
+                    <p class="pillar-description">
+                        <strong>Fórmula:</strong> Comentários e reações ÷ visualizações<br>
+                        Mede a qualidade da interação com seu conteúdo
+                    </p>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🌐 Crescimento de Rede</h3>
+                    <p class="pillar-description">
+                        Novos decisores e influenciadores de decisão adicionados mensalmente
+                    </p>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">🎯 Leads Gerados</h3>
+                    <p class="pillar-description">
+                        Pessoas que solicitaram reunião ou demonstraram interesse nos seus produtos/serviços
+                    </p>
+                </div>
+                
+                <div class="pillar-card">
+                    <h3 class="pillar-title">📅 Reuniões Agendadas</h3>
+                    <p class="pillar-description">
+                        Controle rigoroso no calendário (Outlook/Google Calendar) de meetings efetivamente marcadas
+                    </p>
+                </div>
+            </div>
+            
+            <div style="background: linear-gradient(135deg, #f8f9ff 0%, #ffffff 100%); padding: 2rem; border-radius: 15px; margin-top: 3rem; box-shadow: 0 10px 30px rgba(0,0,102,0.1); border-left: 5px solid #0051CC;">
+                <h3 style="color: #000066; margin-bottom: 1rem;">💼 Caso de Sucesso</h3>
+                <p style="color: #666; font-size: 1.1rem;">
+                    <strong>Maria Sousa, Diretora de RH:</strong> Acompanhou métricas semanalmente e viu aumento de <strong>120% em convites aceitos</strong> 
+                    e geração de <strong>15 leads qualificados em 30 dias</strong>.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Strategy Analysis Section -->
+    <section class="content-section">
+        <div class="container">
+            <h2 class="section-title">Análise e Ajuste de Estratégia</h2>
+            <p style="font-size: 1.2rem; text-align: center; color: #666; max-width: 800px; margin: 0 auto 3rem;">
+                O sucesso da máquina de demanda depende da análise contínua e ajustes baseados em dados reais
+            </p>
+            
+            <div style="background: #ffffff; padding: 3rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,102,0.1); text-align: center;">
+                <h3 style="color: #000066; margin-bottom: 2rem; font-size: 1.8rem;">📈 Otimização Contínua</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 2rem;">
+                    <div style="background: #f8f9ff; padding: 1.5rem; border-radius: 10px;">
+                        <h4 style="color: #000066; margin-bottom: 0.5rem;">Análise Semanal</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Revisar métricas de engajamento e ajustar conteúdo</p>
+                    </div>
+                    <div style="background: #f8f9ff; padding: 1.5rem; border-radius: 10px;">
+                        <h4 style="color: #000066; margin-bottom: 0.5rem;">Teste A/B</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Experimentar diferentes formatos de posts e mensagens</p>
+                    </div>
+                    <div style="background: #f8f9ff; padding: 1.5rem; border-radius: 10px;">
+                        <h4 style="color: #000066; margin-bottom: 0.5rem;">Refinamento</h4>
+                        <p style="color: #666; font-size: 0.9rem;">Focar nos temas que geram mais conversões</p>
+                    </div>
+                </div>
+                <p style="color: #666; font-style: italic;">
+                    "A diferença entre sucesso e fracasso está na capacidade de ajustar rapidamente com base nos resultados."
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section id="contato" class="cta-section">
+        <div class="container">
+            <h2 style="font-size: 2.5rem; margin-bottom: 1rem;">Pronto para Transformar seu LinkedIn?</h2>
+            <p style="font-size: 1.2rem; margin-bottom: 2rem; opacity: 0.9;">
+                Acesse nosso framework completo e comece a gerar leads qualificados hoje mesmo
+            </p>
+            
+            <div class="cta-buttons">
+                <a href="https://ondaskim.com/ondaskim-cap/" class="cta-btn">📅 Agendar Reunião</a>
+                <a href="https://ondaskim.com/comunidade/" class="cta-btn secondary">👥 Entrar na Comunidade</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 OndaSkim. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            });
+        });
+
+        // Add scroll effect to header
+        window.addEventListener('scroll', function() {
+            const header = document.querySelector('.header');
+            if (window.scrollY > 100) {
+                header.style.boxShadow = '0 4px 20px rgba(0,0,102,0.15)';
+            } else {
+                header.style.boxShadow = '0 2px 10px rgba(0,0,102,0.1)';
+            }
+        });
+
+        // Animate stats on scroll
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.animation = 'fadeInUp 0.8s ease forwards';
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.stat-card, .pillar-card, .result-item').forEach(card => {
+            observer.observe(card);
+        });
+
+        // Counter animation for stats
+        function animateCounter(element, target, duration = 2000) {
+            const originalText = element.textContent;
+            const hasPercent = originalText.includes('%');
+            const hasMultiplier = originalText.includes('×');
+            const numericValue = parseInt(originalText.replace(/[^0-9]/g, ''));
+            
+            if (!numericValue) return;
+            
+            const start = 0;
+            const increment = numericValue / (duration / 16);
+            let current = start;
+            
+            const timer = setInterval(() => {
+                current += increment;
+                if (current >= numericValue) {
+                    current = numericValue;
+                    clearInterval(timer);
+                }
+                
+                let displayValue = Math.floor(current);
+                if (hasPercent) {
+                    displayValue += '%';
+                } else if (hasMultiplier) {
+                    displayValue += '×';
+                }
+                
+                element.textContent = displayValue;
+            }, 16);
+        }
+
+        // Initialize counter animations when visible
+        const statObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const number = entry.target.querySelector('.stat-number, .result-number');
+                    if (number) {
+                        const originalText = number.textContent;
+                        const numericValue = parseInt(originalText.replace(/[^0-9]/g, ''));
+                        if (numericValue) {
+                            animateCounter(number, numericValue);
+                        }
+                        statObserver.unobserve(entry.target);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.stat-card, .result-item').forEach(card => {
+            statObserver.observe(card);
+        });
+
+        // Add hover effects to cards
+        document.querySelectorAll('.pillar-card').forEach(card => {
+            card.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-5px) scale(1.02)';
+                this.style.boxShadow = '0 20px 40px rgba(0,0,102,0.2)';
+            });
+            
+            card.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0) scale(1)';
+                this.style.boxShadow = '0 10px 30px rgba(0,0,102,0.1)';
+            });
+        });
+
+        // Add staggered animation to list items
+        document.querySelectorAll('.pillar-description ul li').forEach((item, index) => {
+            item.style.opacity = '0';
+            item.style.transform = 'translateX(-20px)';
+            item.style.transition = `opacity 0.5s ease ${index * 0.1}s, transform 0.5s ease ${index * 0.1}s`;
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateX(0)';
+                        observer.unobserve(entry.target);
+                    }
+                });
+            });
+            
+            observer.observe(item);
+        });
+
+        // Smooth reveal animation for sections
+        const revealObserver = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.style.opacity = '1';
+                    entry.target.style.transform = 'translateY(0)';
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll('.content-section').forEach(section => {
+            section.style.opacity = '0';
+            section.style.transform = 'translateY(30px)';
+            section.style.transition = 'opacity 0.8s ease, transform 0.8s ease';
+            revealObserver.observe(section);
+        });
+    </script>
+</body>
+</html>
